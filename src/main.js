@@ -27,7 +27,7 @@ module.exports.loop = function () {
     const room = spawn.room;
     const sources = room.find(FIND_SOURCES);
 
-    require('src/utils/storage').buildMissingStorageNearSources(room);
+    require('utils/storage').buildMissingStorageNearSources(room);
 
     for (var i = 0; i < sources.length; i++) {
         var creepName = 'harvester-' + i + '-v' + HARVESTER_VERSION;
