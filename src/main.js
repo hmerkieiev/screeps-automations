@@ -3,37 +3,37 @@ console.log('✅ GitHub code synced and running!');
 // Debug-load roles
 let roles = {};
 try {
-    roles.harvester = require('roles/harvester');
+    roles.harvester = require('harvester');
     console.log('✅ harvester module loaded');
 } catch (e) {
     console.log('❌ Error loading harvester:', e.message);
 }
 try {
-    roles.balancer = require('roles/balancer');
+    roles.balancer = require('balancer');
     console.log('✅ balancer module loaded');
 } catch (e) {
     console.log('❌ Error loading balancer:', e.message);
 }
 try {
-    roles.upgrader = require('roles/upgrader');
+    roles.upgrader = require('upgrader');
     console.log('✅ upgrader module loaded');
 } catch (e) {
     console.log('❌ Error loading upgrader:', e.message);
 }
 try {
-    roles.builder = require('roles/builder');
+    roles.builder = require('builder');
     console.log('✅ builder module loaded');
 } catch (e) {
     console.log('❌ Error loading builder:', e.message);
 }
 try {
-    roles.attacker = require('roles/attacker');
+    roles.attacker = require('attacker');
     console.log('✅ attacker module loaded');
 } catch (e) {
     console.log('❌ Error loading attacker:', e.message);
 }
 try {
-    roles.scout = require('roles/scout');
+    roles.scout = require('scout');
     console.log('✅ scout module loaded');
 } catch (e) {
     console.log('❌ Error loading scout:', e.message);
@@ -42,7 +42,7 @@ try {
 // Debug-load utils
 let storageUtils = null;
 try {
-    storageUtils = require('src/utils/storage');
+    storageUtils = require('storage');
     console.log('✅ storage utils module loaded');
 } catch (e) {
     console.log('❌ Error loading storage utils:', e.message);
@@ -67,7 +67,7 @@ module.exports.loop = function () {
     const room = spawn.room;
     const sources = room.find(FIND_SOURCES);
 
-    if (storageUtils?.buildMissingStorageNearSources) {
+    if (storageUtils && typeof storageUtils.buildMissingStorageNearSources === 'function') {
         storageUtils.buildMissingStorageNearSources(room);
     } else {
         console.log('⚠️ buildMissingStorageNearSources not available');
@@ -76,7 +76,7 @@ module.exports.loop = function () {
     // Harvesters
     for (let i = 0; i < sources.length; i++) {
         let name = `harvester-${i}-v${HARVESTER_VERSION}`;
-        if (!Game.creeps[name] && !(spawn.spawning?.name === name)) {
+        if (!Game.creeps[name] && (!spawn.spawning || spawn.spawning.name !== name)) {
             let result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
                 memory: { role: 'harvester', sourceIndex: i, version: HARVESTER_VERSION }
             });
