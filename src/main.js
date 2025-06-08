@@ -1,11 +1,11 @@
 
 const roles = {
-    harvester: require('roles/harvester'),
-    balancer: require('roles/balancer'),
-    upgrader: require('roles/upgrader'),
-    builder: require('roles/builder'),
-    attacker: require('roles/attacker'),
-    scout: require('roles/scout')
+    harvester: require('src/roles/harvester'),
+    balancer: require('src/roles/balancer'),
+    upgrader: require('src/roles/upgrader'),
+    builder: require('src/roles/builder'),
+    attacker: require('src/roles/attacker'),
+    scout: require('src/roles/scout')
 };
 
 const HARVESTER_VERSION = 4;
@@ -26,7 +26,7 @@ module.exports.loop = function () {
     const room = spawn.room;
     const sources = room.find(FIND_SOURCES);
 
-    require('utils/storage').buildMissingStorageNearSources(room);
+    require('src/utils/storage').buildMissingStorageNearSources(room);
 
     for (var i = 0; i < sources.length; i++) {
         var creepName = 'harvester-' + i + '-v' + HARVESTER_VERSION;
