@@ -1,14 +1,54 @@
 console.log('✅ GitHub code synced and running!');
 
-const roles = {
-    harvester: require('roles/harvester'),
-    balancer: require('roles/balancer'),
-    upgrader: require('roles/upgrader'),
-    builder: require('roles/builder'),
-    attacker: require('roles/attacker'),
-    scout: require('roles/scout')
-};
+// Debug-load roles
+let roles = {};
+try {
+    roles.harvester = require('roles/harvester');
+    console.log('✅ harvester module loaded');
+} catch (e) {
+    console.log('❌ Error loading harvester:', e.message);
+}
+try {
+    roles.balancer = require('roles/balancer');
+    console.log('✅ balancer module loaded');
+} catch (e) {
+    console.log('❌ Error loading balancer:', e.message);
+}
+try {
+    roles.upgrader = require('roles/upgrader');
+    console.log('✅ upgrader module loaded');
+} catch (e) {
+    console.log('❌ Error loading upgrader:', e.message);
+}
+try {
+    roles.builder = require('roles/builder');
+    console.log('✅ builder module loaded');
+} catch (e) {
+    console.log('❌ Error loading builder:', e.message);
+}
+try {
+    roles.attacker = require('roles/attacker');
+    console.log('✅ attacker module loaded');
+} catch (e) {
+    console.log('❌ Error loading attacker:', e.message);
+}
+try {
+    roles.scout = require('roles/scout');
+    console.log('✅ scout module loaded');
+} catch (e) {
+    console.log('❌ Error loading scout:', e.message);
+}
 
+// Debug-load utils
+let storageUtils = null;
+try {
+    storageUtils = require('src/utils/storage');
+    console.log('✅ storage utils module loaded');
+} catch (e) {
+    console.log('❌ Error loading storage utils:', e.message);
+}
+
+// === Main logic ===
 const HARVESTER_VERSION = 4;
 const UPGRADER_COUNT = 1;
 const BUILDER_COUNT = 0;
@@ -27,28 +67,32 @@ module.exports.loop = function () {
     const room = spawn.room;
     const sources = room.find(FIND_SOURCES);
 
-    require('utils/storage').buildMissingStorageNearSources(room);
-
-    for (var i = 0; i < sources.length; i++) {
-        var creepName = 'harvester-' + i + '-v' + HARVESTER_VERSION;
-        if (Game.creeps[creepName] || (spawn.spawning && spawn.spawning.name === creepName)) continue;
-        var result = spawn.spawnCreep([WORK, CARRY, MOVE], creepName, {
-            memory: {
-                role: 'harvester',
-                sourceIndex: i,
-                version: HARVESTER_VERSION
-            }
-        });
-        if (result === OK) console.log('🔧 Spawning', creepName);
+    if (storageUtils?.buildMissingStorageNearSources) {
+        storageUtils.buildMissingStorageNearSources(room);
+    } else {
+        console.log('⚠️ buildMissingStorageNearSources not available');
     }
 
-    const balancerName = 'balancer-v' + HARVESTER_VERSION;
+    // Harvesters
+    for (let i = 0; i < sources.length; i++) {
+        let name = `harvester-${i}-v${HARVESTER_VERSION}`;
+        if (!Game.creeps[name] && !(spawn.spawning?.name === name)) {
+            let result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
+                memory: { role: 'harvester', sourceIndex: i, version: HARVESTER_VERSION }
+            });
+            if (result === OK) console.log('🔧 Spawning', name);
+        }
+    }
+
+    // Balancer
+    let balancerName = `balancer-v${HARVESTER_VERSION}`;
     if (!Game.creeps[balancerName]) {
         spawn.spawnCreep([CARRY, CARRY, MOVE, MOVE], balancerName, {
             memory: { role: 'balancer', version: HARVESTER_VERSION }
         });
     }
 
+    // Upgraders
     for (let i = 0; i < UPGRADER_COUNT; i++) {
         let name = `upgrader-${i}-v${HARVESTER_VERSION}`;
         if (!Game.creeps[name]) {
@@ -58,6 +102,7 @@ module.exports.loop = function () {
         }
     }
 
+    // Builders
     for (let i = 0; i < BUILDER_COUNT; i++) {
         let name = `builder-${i}-v${HARVESTER_VERSION}`;
         if (!Game.creeps[name]) {
@@ -67,6 +112,7 @@ module.exports.loop = function () {
         }
     }
 
+    // Attackers
     for (let i = 0; i < ATTACKER_COUNT; i++) {
         let name = `attacker-${i}-v${HARVESTER_VERSION}`;
         if (!Game.creeps[name]) {
@@ -79,6 +125,7 @@ module.exports.loop = function () {
         }
     }
 
+    // Scouts
     for (let i = 0; i < SCOUT_COUNT; i++) {
         const name = `scout-${i}-v${HARVESTER_VERSION}`;
         if (!Game.creeps[name]) {
@@ -88,10 +135,14 @@ module.exports.loop = function () {
         }
     }
 
-    for (var name in Game.creeps) {
-        var creep = Game.creeps[name];
-        if (roles[creep.memory.role]) {
-            roles[creep.memory.role](creep);
+    // Run creeps
+    for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
+        const role = creep.memory.role;
+        if (roles[role]) {
+            roles[role](creep);
+        } else {
+            console.log(`⚠️ No role implementation for: ${role}`);
         }
     }
 };
