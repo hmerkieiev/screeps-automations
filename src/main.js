@@ -1,7 +1,7 @@
-console.log('✅ GitHub code synced and running!');
+console.log('✅ GitHub code synced and running!!!!');
 
 // Debug-load roles
-let roles = {};
+var roles = {};
 try {
     roles.harvester = require('harvester');
     console.log('✅ harvester module loaded');
@@ -39,8 +39,7 @@ try {
     console.log('❌ Error loading scout:', e.message);
 }
 
-// Debug-load utils
-let storageUtils = null;
+var storageUtils = null;
 try {
     storageUtils = require('storage');
     console.log('✅ storage utils module loaded');
@@ -48,24 +47,33 @@ try {
     console.log('❌ Error loading storage utils:', e.message);
 }
 
-// === Main logic ===
-const HARVESTER_VERSION = 4;
-const UPGRADER_COUNT = 1;
-const BUILDER_COUNT = 0;
-const ATTACKER_COUNT = 1;
-const SCOUT_COUNT = 1;
+var HARVESTER_VERSION = 4;
+var UPGRADER_COUNT = 0;
+var BUILDER_COUNT = 0;
+var ATTACKER_COUNT = 0;
+var SCOUT_COUNT = 0;
 
 module.exports.loop = function () {
-    for (const name in Memory.creeps) {
+    console.log('🔄 --- New game tick ---');
+
+    for (var name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
             console.log('🧹 Cleared memory of', name);
         }
     }
 
-    const spawn = Game.spawns['Spawn1'];
-    const room = spawn.room;
-    const sources = room.find(FIND_SOURCES);
+    var spawns = Object.keys(Game.spawns);
+    if (spawns.length === 0) {
+        console.log('❌ No spawns found');
+        return;
+    }
+
+    var spawn = Game.spawns[spawns[0]];
+    var room = spawn.room;
+    var sources = room.find(FIND_SOURCES);
+    console.log('🏠 Using spawn:', spawn.name, 'in room:', room.name);
+    console.log('🌞 Found', sources.length, 'sources');
 
     if (storageUtils && typeof storageUtils.buildMissingStorageNearSources === 'function') {
         storageUtils.buildMissingStorageNearSources(room);
@@ -73,76 +81,105 @@ module.exports.loop = function () {
         console.log('⚠️ buildMissingStorageNearSources not available');
     }
 
-    // Harvesters
-    for (let i = 0; i < sources.length; i++) {
-        let name = `harvester-${i}-v${HARVESTER_VERSION}`;
+    for (var i = 0; i < sources.length; i++) {
+        var name = 'harvester-' + i + '-v' + HARVESTER_VERSION;
         if (!Game.creeps[name] && (!spawn.spawning || spawn.spawning.name !== name)) {
-            let result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
+            var result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
                 memory: { role: 'harvester', sourceIndex: i, version: HARVESTER_VERSION }
             });
-            if (result === OK) console.log('🔧 Spawning', name);
+            if (result === OK) {
+                console.log('🔧 Spawning', name);
+            } else {
+                console.log('❌ Failed to spawn', name, '-', result);
+            }
         }
     }
 
-    // Balancer
-    let balancerName = `balancer-v${HARVESTER_VERSION}`;
+    var balancerName = 'balancer-v' + HARVESTER_VERSION;
     if (!Game.creeps[balancerName]) {
-        spawn.spawnCreep([CARRY, CARRY, MOVE, MOVE], balancerName, {
+        var result = spawn.spawnCreep([CARRY, CARRY, MOVE, MOVE], balancerName, {
             memory: { role: 'balancer', version: HARVESTER_VERSION }
         });
+        if (result === OK) {
+            console.log('🔧 Spawning', balancerName);
+        } else {
+            console.log('❌ Failed to spawn', balancerName, '-', result);
+        }
     }
 
-    // Upgraders
-    for (let i = 0; i < UPGRADER_COUNT; i++) {
-        let name = `upgrader-${i}-v${HARVESTER_VERSION}`;
+    for (var i = 0; i < UPGRADER_COUNT; i++) {
+        var name = 'upgrader-' + i + '-v' + HARVESTER_VERSION;
         if (!Game.creeps[name]) {
-            spawn.spawnCreep([WORK, CARRY, MOVE], name, {
+            var result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
                 memory: { role: 'upgrader', index: i, version: HARVESTER_VERSION }
             });
+            if (result === OK) {
+                console.log('🔧 Spawning', name);
+            } else {
+                console.log('❌ Failed to spawn', name, '-', result);
+            }
         }
     }
 
-    // Builders
-    for (let i = 0; i < BUILDER_COUNT; i++) {
-        let name = `builder-${i}-v${HARVESTER_VERSION}`;
+    for (var i = 0; i < BUILDER_COUNT; i++) {
+        var name = 'builder-' + i + '-v' + HARVESTER_VERSION;
         if (!Game.creeps[name]) {
-            spawn.spawnCreep([WORK, CARRY, MOVE], name, {
+            var result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
                 memory: { role: 'builder', index: i, version: HARVESTER_VERSION }
             });
+            if (result === OK) {
+                console.log('🔧 Spawning', name);
+            } else {
+                console.log('❌ Failed to spawn', name, '-', result);
+            }
         }
     }
 
-    // Attackers
-    for (let i = 0; i < ATTACKER_COUNT; i++) {
-        let name = `attacker-${i}-v${HARVESTER_VERSION}`;
+    for (var i = 0; i < ATTACKER_COUNT; i++) {
+        var name = 'attacker-' + i + '-v' + HARVESTER_VERSION;
         if (!Game.creeps[name]) {
-            const energy = room.energyAvailable;
-            let body = energy >= 260 ? [MOVE, MOVE, ATTACK, ATTACK] : energy >= 130 ? [MOVE, ATTACK] : null;
-            if (!body) continue;
-            spawn.spawnCreep(body, name, {
-                memory: { role: 'attacker', index: i, version: HARVESTER_VERSION }
-            });
+            var energy = room.energyAvailable;
+            var body = energy >= 260 ? [MOVE, MOVE, ATTACK, ATTACK] : energy >= 130 ? [MOVE, ATTACK] : null;
+            if (body) {
+                var result = spawn.spawnCreep(body, name, {
+                    memory: { role: 'attacker', index: i, version: HARVESTER_VERSION }
+                });
+                if (result === OK) {
+                    console.log('🔧 Spawning', name);
+                } else {
+                    console.log('❌ Failed to spawn', name, '-', result);
+                }
+            } else {
+                console.log('⚠️ Not enough energy to spawn attacker');
+            }
         }
     }
 
-    // Scouts
-    for (let i = 0; i < SCOUT_COUNT; i++) {
-        const name = `scout-${i}-v${HARVESTER_VERSION}`;
+    for (var i = 0; i < SCOUT_COUNT; i++) {
+        var name = 'scout-' + i + '-v' + HARVESTER_VERSION;
         if (!Game.creeps[name]) {
-            spawn.spawnCreep([WORK, CARRY, MOVE], name, {
+            var result = spawn.spawnCreep([WORK, CARRY, MOVE], name, {
                 memory: { role: 'scout', index: i, version: HARVESTER_VERSION }
             });
+            if (result === OK) {
+                console.log('🔧 Spawning', name);
+            } else {
+                console.log('❌ Failed to spawn', name, '-', result);
+            }
         }
     }
 
-    // Run creeps
-    for (const name in Game.creeps) {
-        const creep = Game.creeps[name];
-        const role = creep.memory.role;
+    for (var name in Game.creeps) {
+        var creep = Game.creeps[name];
+        var role = creep.memory.role;
         if (roles[role]) {
-            roles[role](creep);
+            try {
+                roles[role](creep);
+            } catch (e) {
+                console.log('❌ Error running creep', name, '-', e.message);
+            }
         } else {
-            console.log(`⚠️ No role implementation for: ${role}`);
+            console.log('⚠️ No role implementation for:', role, 'on creep', name);
         }
     }
 };
