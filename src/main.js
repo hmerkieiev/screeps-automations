@@ -1,12 +1,12 @@
 console.log('✅ GitHub code synced and running!');
 
 const roles = {
-    harvester: require('src/roles/harvester'),
-    balancer: require('src/roles/balancer'),
-    upgrader: require('src/roles/upgrader'),
-    builder: require('src/roles/builder'),
-    attacker: require('src/roles/attacker'),
-    scout: require('src/roles/scout')
+    harvester: require('roles/harvester'),
+    balancer: require('roles/balancer'),
+    upgrader: require('roles/upgrader'),
+    builder: require('roles/builder'),
+    attacker: require('roles/attacker'),
+    scout: require('roles/scout')
 };
 
 const HARVESTER_VERSION = 4;
